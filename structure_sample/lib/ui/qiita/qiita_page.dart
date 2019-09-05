@@ -28,24 +28,44 @@ class QiitaPage extends StatelessWidget {
 
   Widget _buildBody(BuildContext context) {
     final bloc = BlocProvider.of<QiitaBloc>(context);
-    return StreamBuilder<QiitaTag>(
-      stream: bloc.tag,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return ErrorMessageWidget(
-            onPressed: () => bloc.inputId("android"),
-          );
-        }
-        if (!snapshot.hasData) {
-          return CustomIndicator();
-        }
-        final tag = snapshot.data;
-        return ListTile(
-          title: Text(tag.id),
-          subtitle: Text("Follower: ${tag.followers}"),
-          leading: Image.network(tag.iconUrl),
-        );
-      },
+    return Column(
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: TextField(
+                  textInputAction: TextInputAction.search,
+                  decoration: InputDecoration(
+                    hintText: "検索するタグ名を入力してください",
+                    border: InputBorder.none,
+                  ),
+                  onSubmitted: (inputText) {
+                    bloc.inputId(inputText);
+                  }),
+            ),
+          ],
+        ),
+        StreamBuilder<QiitaTag>(
+          stream: bloc.tag,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return ErrorMessageWidget();
+            }
+            if (!snapshot.hasData) {
+              return CustomIndicator();
+            }
+            final tag = snapshot.data;
+            if (tag.iconUrl == null) {
+              return ListTile(title: Text("みつかりませんでした"));
+            }
+            return ListTile(
+              title: Text(tag.id),
+              subtitle: Text("Follower: ${tag.followers}"),
+              leading: Image.network(tag.iconUrl),
+            );
+          },
+        )
+      ],
     );
   }
 }
